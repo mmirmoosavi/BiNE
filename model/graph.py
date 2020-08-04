@@ -54,22 +54,22 @@ class Graph(defaultdict):
 
   def subgraph(self, nodes={}):
     subgraph = Graph()
-    
+
     for n in nodes:
       if n in self:
         subgraph[n] = [x for x in self[n] if x in nodes]
-        
+
     return subgraph
 
   def make_undirected(self):
-  
+
     t0 = time()
 
     for v in self.keys():
       for other in self[v]:
         if v != other:
           self[other].append(v)
-    
+
     t1 = time()
     logger.info('make_directed: added missing edges {}s'.format(t1-t0))
 
@@ -129,7 +129,7 @@ class Graph(defaultdict):
         if x in self[x]:
           self[x].remove(x)
           removed += 1
-    
+
     t1 = time()
 
     logger.info('remove_self_loops: removed {} loops in {}s'.format(removed, (t1-t0)))
@@ -140,7 +140,7 @@ class Graph(defaultdict):
       for y in self[x]:
         if x == y:
           return True
-    
+
     return False
 
   def has_edge(self, v1, v2):
@@ -156,7 +156,7 @@ class Graph(defaultdict):
 
   def order(self):
     "Returns the number of nodes in the graph"
-    return len(self)    
+    return len(self)
 
   def number_of_edges(self):
     "Returns the number of nodes in the graph"
@@ -299,7 +299,7 @@ def calculateAct(self,node):
 def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,
                       rand = random.Random(), node_type='u'):
   walks = []
-  
+
   nodes_total = list(G.nodes())
   nodes = []
   for obj in nodes_total:
@@ -307,12 +307,12 @@ def build_deepwalk_corpus(G, num_paths, path_length, alpha=0,
       nodes.append(obj)
 
   # nodes = list(G.nodes())
-  
+
   for cnt in range(num_paths):
     rand.shuffle(nodes)
     for node in nodes:
      walks.append(G.random_walk(nodes,path_length, alpha=alpha, rand=rand, start=node))
-  
+
   return walks
 
 def build_deepwalk_corpus_random(G, hits_dict, percentage, maxT, minT, alpha=0, rand = random.Random()):
@@ -328,6 +328,7 @@ def build_deepwalk_corpus_random(G, hits_dict, percentage, maxT, minT, alpha=0, 
   return walks
 
 def build_deepwalk_corpus_random_for_large_bibartite_graph(G, hits_dict, percentage, maxT, minT, alpha=0, rand = random.Random(), node_type='u'):
+  from time import time
   walks = []
   nodes_total = list(G.nodes())
   nodes = []
@@ -336,15 +337,19 @@ def build_deepwalk_corpus_random_for_large_bibartite_graph(G, hits_dict, percent
     if obj[0] == node_type:
       nodes.append(obj)
   # cnt_0 = 1
-  # print(len(nodes))
+  print(len(nodes))
   for node in nodes:
+
     # if cnt_0 % 1000 == 0:
     #   print(cnt_0)
     # cnt_0 += 1
     num_paths = max(int(math.ceil(maxT * hits_dict[node])),minT)
-    # print num_paths,
+    print num_paths,
+    start = time()
     for cnt in range(num_paths):
      walks.append(G.random_walk_restart_for_large_bipartite_graph(nodes, percentage,rand=rand, alpha=alpha, start=node))
+    end = time()
+    print(end-start)
   random.shuffle(walks)
   return walks
 
@@ -377,7 +382,7 @@ def parse_adjacencylist(f):
       row = [introw[0]]
       row.extend(set(sorted(introw[1:])))
       adjlist.extend([row])
-  
+
   return adjlist
 
 def parse_adjacencylist_unchecked(f):
@@ -385,7 +390,7 @@ def parse_adjacencylist_unchecked(f):
   for l in f:
     if l and l[0] != "#":
       adjlist.extend([[int(x) for x in l.strip().split()]])
-  
+
   return adjlist
 
 def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True):
@@ -403,11 +408,11 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
 
   with open(file_) as f:
     with ProcessPoolExecutor(max_workers=cpu_count()) as executor:
-      total = 0 
+      total = 0
       for idx, adj_chunk in enumerate(executor.map(parse_func, grouper(int(chunksize), f))):
           adjlist.extend(adj_chunk)
           total += len(adj_chunk)
-  
+
   t1 = time()
 
   logger.info('Parsed {} edges with {} chunks in {}s'.format(total, idx, t1-t0))
@@ -424,7 +429,7 @@ def load_adjacencylist(file_, undirected=False, chunksize=10000, unchecked=True)
     t1 = time()
     logger.info('Made graph undirected in {}s'.format(t1-t0))
 
-  return G 
+  return G
 
 
 def load_edgelist(file_, undirected=True):
@@ -511,7 +516,7 @@ def from_numpy(x, undirected=True):
 
 def from_adjlist(adjlist):
     G = Graph()
-    
+
     for row in adjlist:
         node = row[0]
         neighbors = row[1:]
@@ -522,7 +527,7 @@ def from_adjlist(adjlist):
 
 def from_adjlist_unchecked(adjlist):
     G = Graph()
-    
+
     for row in adjlist:
         node = row[0]
         neighbors = row[1:]
